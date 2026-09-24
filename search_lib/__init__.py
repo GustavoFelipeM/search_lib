@@ -1,17 +1,27 @@
-from search_lib.core import Action, Problem, SearchNode, SearchStrategy, State
-from search_lib.problems.grid import GridPathfinding, GridState, MoveAction
-from search_lib.algorithms.bfs import BFS
-from search_lib.algorithms.dfs import DFS
+from search_lib.core import (
+    State,
+    Action,
+    SearchNode,
+    Problem,
+    SearchStrategy,
+    SearchMetrics,
+    SearchResult,
+    SearchCallbacks
+)
+from search_lib.algorithms.bfs_tree import BFS
+from search_lib.algorithms.dfs_tree import DFS
+from search_lib.algorithms.dls_tree import DLS
 
 __all__ = [
-    "State", 
-    "Action", 
-    "SearchNode", 
-    "Problem", 
+    "State",
+    "Action",
+    "SearchNode",
+    "Problem",
     "SearchStrategy",
-    "GridPathfinding",
-    "GridState",
-    "MoveAction", 
-    "BFS", 
-    "DFS"
+    "SearchMetrics",
+    "SearchResult",
+    "SearchCallbacks",
+    "BFS",
+    "DFS",
+    "DLS",
 ]

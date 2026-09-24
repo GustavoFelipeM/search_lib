@@ -11,3 +11,7 @@ env/
 
 # Configurações de IDEs
 .vscode/
+
+# Resultado de teste
+*.csv
+*.svg

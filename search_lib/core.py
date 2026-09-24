@@ -1,12 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import Optional
-from collections import deque
 from dataclasses import dataclass
-import random
+from typing import Optional, Tuple, List, Callable, Any
 
 
 class State(ABC):
-    """Classe abstrata para representar o estado. Deve ser imutável/hashável nas subclasses."""
+    """Classe abstrata para representar o estado. Deve ser imutável/hashável."""
     pass
 
 
@@ -14,13 +12,13 @@ class Action(ABC):
     """Classe abstrata para representação de ações."""
     
     @abstractmethod
-    def apply(self, state: State) -> Optional[State]:
-        """Aplica a ação no estado. Retorna o novo estado ou None se a ação for inválida."""
+    def apply(self, state: State) -> Optional[Tuple[State, float]]:
+        """Aplica a ação no estado. Retorna o par (next_state, cost) ou None se for inválida."""
         pass
 
 
 class SearchNode:
-    """Nó interno da árvore de busca. Controla pai, ação geradora e custo acumulado."""
+    """Nó interno da árvore de busca. Controla pai, ação geradora, custo acumulado e profundidade."""
     
     def __init__(
         self, 
@@ -33,8 +31,9 @@ class SearchNode:
         self.parent = parent
         self.action = action
         self.cost = cost
+        self.depth: int = (parent.depth + 1) if parent is not None else 0
 
-    def get_path(self) -> list[Action]:
+    def get_path(self) -> List[Action]:
         """Reconstrói a lista de ações da raiz até este nó."""
         path = []
         curr = self
@@ -44,11 +43,37 @@ class SearchNode:
         return list(reversed(path))
 
 
+@dataclass
+class SearchMetrics:
+    """Coleta de métricas de desempenho da busca."""
+    nodes_expanded: int = 0
+    nodes_generated: int = 0
+    max_frontier_size: int = 0
+    execution_time: float = 0.0
+
+
+@dataclass
+class SearchResult:
+    """Resultado da execução da busca contendo o nó solução e as métricas."""
+    solution_node: Optional[SearchNode]
+    metrics: SearchMetrics
+
+
+@dataclass
+class SearchCallbacks:
+    """Callbacks/hooks configuráveis para monitorar eventos durante a busca."""
+    on_start: Optional[Callable[[], None]] = None
+    on_node_expanded: Optional[Callable[[SearchNode, Any], None]] = None
+    on_node_generated: Optional[Callable[[SearchNode, Any], None]] = None
+    on_action_applied: Optional[Callable[[SearchNode, Action, Optional[Tuple[State, float]]], None]] = None
+    on_finish: Optional[Callable[[SearchResult], None]] = None
+
+
 class Problem(ABC):
     """Representa o espaço de estados, transições e teste de objetivo."""
 
     @abstractmethod
-    def actions(self, state: State) -> list[Action]:
+    def actions(self, state: State) -> List[Action]:
         """Retorna o conjunto de ações aplicáveis em um estado."""
         pass
 
@@ -61,29 +86,6 @@ class Problem(ABC):
         """Retorna o valor heurístico estimado até o objetivo (opcional)."""
         return 0.0
 
-    def random_walk(self, initial_state: State, n: int, avoid_repeats: bool = False) -> State:
-        """Gera um estado realizando n passos aleatórios a partir do estado inicial."""
-        current = initial_state
-        visited = {current} if avoid_repeats else set()
-
-        for _ in range(n):
-            possible_actions = self.actions(current)
-            valid_transitions = []
-
-            for act in possible_actions:
-                nxt = act.apply(current)
-                if nxt is not None and (not avoid_repeats or nxt not in visited):
-                    valid_transitions.append((act, nxt))
-
-            if not valid_transitions:
-                break
-
-            _, current = random.choice(valid_transitions)
-            if avoid_repeats:
-                visited.add(current)
-
-        return current
-
 
 class SearchStrategy(ABC):
     """Estratégia genérica de busca."""
@@ -92,6 +94,10 @@ class SearchStrategy(ABC):
         self.problem = problem
 
     @abstractmethod
-    def search(self, initial_state: State) -> Optional[SearchNode]:
+    def search(
+        self, 
+        initial_state: State, 
+        callbacks: Optional[SearchCallbacks] = None
+    ) -> SearchResult:
         """Executa a busca a partir de um estado inicial."""
         pass

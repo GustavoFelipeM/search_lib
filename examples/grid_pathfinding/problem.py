@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable, Optional
+from typing import Optional, Tuple, List
 from search_lib.core import Action, Problem, State
 
 
@@ -10,13 +10,21 @@ class GridState(State):
 
 
 class MoveAction(Action):
-    def __init__(self, dx: int, dy: int, name: str, limits: Optional[tuple[int, int]] = None):
+    def __init__(
+        self, 
+        dx: int, 
+        dy: int, 
+        name: str, 
+        limits: Optional[Tuple[int, int]] = None,
+        cost: float = 1.0
+    ):
         self.dx = dx
         self.dy = dy
         self.name = name
         self.limits = limits
+        self.step_cost = cost
 
-    def apply(self, state: State) -> Optional[State]:
+    def apply(self, state: State) -> Optional[Tuple[State, float]]:
         if not isinstance(state, GridState):
             return None
         
@@ -27,7 +35,7 @@ class MoveAction(Action):
             if not (0 <= nx < max_x and 0 <= ny < max_y):
                 return None
                 
-        return GridState(nx, ny)
+        return GridState(nx, ny), self.step_cost
 
     def __repr__(self) -> str:
         return f"MOVER({self.name})"
@@ -35,23 +43,27 @@ class MoveAction(Action):
 
 def manhattan_distance(state: State, goal: State) -> float:
     if isinstance(state, GridState) and isinstance(goal, GridState):
-        return abs(state.x - goal.x) + abs(state.y - goal.y)
+        return float(abs(state.x - goal.x) + abs(state.y - goal.y))
     return 0.0
 
 
 class GridPathfinding(Problem):
+    """
+    Problema de busca de caminhos em grelha 2D.
+    Pode ser inicializado via parâmetros directos ou carregado a partir de ficheiro de texto.
+    """
     def __init__(
         self, 
-        map_limits: Optional[tuple[int, int]] = None, 
+        map_limits: Optional[Tuple[int, int]] = None, 
+        initial_state: Optional[GridState] = None,
         goal: Optional[GridState] = None, 
         permite_diag: bool = False,
         obstacles: Optional[set[GridState]] = None,
-        heuristic_fn: Optional[Callable[[State, State], float]] = None,
         file: Optional[str] = None
     ):
         self.permite_diag = permite_diag
-        self.heuristic_fn = heuristic_fn or manhattan_distance
         self.obstacles: set[GridState] = obstacles or set()
+        self.initial_state = initial_state or GridState(0, 0)
         self.goal = goal
         self.width = map_limits[0] if map_limits else 10
         self.height = map_limits[1] if map_limits else 10
@@ -60,6 +72,7 @@ class GridPathfinding(Problem):
             self._load_from_file(file)
 
     def _load_from_file(self, filepath: str) -> None:
+        """Carrega o mapa a partir de um ficheiro de texto."""
         with open(filepath, 'r') as f:
             lines = [line.strip() for line in f.readlines() if line.strip()]
         
@@ -71,10 +84,12 @@ class GridPathfinding(Problem):
             for x, char in enumerate(row):
                 if char == '#':
                     self.obstacles.add(GridState(x, y))
+                elif char == 'S':
+                    self.initial_state = GridState(x, y)
                 elif char == 'G':
                     self.goal = GridState(x, y)
 
-    def actions(self, state: State) -> list[Action]:
+    def actions(self, state: State) -> List[Action]:
         if not isinstance(state, GridState):
             return []
 
@@ -86,19 +101,21 @@ class GridPathfinding(Problem):
         ]
 
         if self.permite_diag:
+            # Movimentos diagonais têm custo maior (ex: sqrt(2) ≈ 1.414)
             moves.extend([
-                MoveAction(-1, -1, "DIAG_SUP_ESQ", (self.width, self.height)),
-                MoveAction(1, -1, "DIAG_SUP_DIR", (self.width, self.height)),
-                MoveAction(-1, 1, "DIAG_INF_ESQ", (self.width, self.height)),
-                MoveAction(1, 1, "DIAG_INF_DIR", (self.width, self.height)),
+                MoveAction(-1, -1, "DIAG_SUP_ESQ", (self.width, self.height), cost=1.414),
+                MoveAction(1, -1, "DIAG_SUP_DIR", (self.width, self.height), cost=1.414),
+                MoveAction(-1, 1, "DIAG_INF_ESQ", (self.width, self.height), cost=1.414),
+                MoveAction(1, 1, "DIAG_INF_DIR", (self.width, self.height), cost=1.414),
             ])
 
         valid_actions = []
         for move in moves:
-            nxt = move.apply(state)
-            # Alterado aqui: checagem explícita contra None
-            if nxt is not None and nxt not in self.obstacles:
-                valid_actions.append(move)
+            res = move.apply(state)
+            if res is not None:
+                nxt_state, _ = res
+                if nxt_state not in self.obstacles:
+                    valid_actions.append(move)
 
         return valid_actions
 
@@ -108,4 +125,4 @@ class GridPathfinding(Problem):
     def heuristic(self, state: State) -> float:
         if self.goal is None:
             return 0.0
-        return self.heuristic_fn(state, self.goal)
+        return manhattan_distance(state, self.goal)
