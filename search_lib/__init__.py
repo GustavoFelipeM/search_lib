@@ -6,7 +6,6 @@ from search_lib.core import (
     SearchStrategy,
     SearchMetrics,
     SearchResult,
-    SearchCallbacks
 )
 from search_lib.algorithms.bfs_tree import BFS
 from search_lib.algorithms.dfs_tree import DFS
@@ -20,7 +19,6 @@ __all__ = [
     "SearchStrategy",
     "SearchMetrics",
     "SearchResult",
-    "SearchCallbacks",
     "BFS",
     "DFS",
     "DLS",

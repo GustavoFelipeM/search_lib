@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Optional, Tuple, List, Callable, Any
+from typing import Optional, Tuple, List, Any
 
 
 class State(ABC):
@@ -59,16 +59,6 @@ class SearchResult:
     metrics: SearchMetrics
 
 
-@dataclass
-class SearchCallbacks:
-    """Callbacks/hooks configuráveis para monitorar eventos durante a busca."""
-    on_start: Optional[Callable[[], None]] = None
-    on_node_expanded: Optional[Callable[[SearchNode, Any], None]] = None
-    on_node_generated: Optional[Callable[[SearchNode, Any], None]] = None
-    on_action_applied: Optional[Callable[[SearchNode, Action, Optional[Tuple[State, float]]], None]] = None
-    on_finish: Optional[Callable[[SearchResult], None]] = None
-
-
 class Problem(ABC):
     """Representa o espaço de estados, transições e teste de objetivo."""
 
@@ -94,10 +84,6 @@ class SearchStrategy(ABC):
         self.problem = problem
 
     @abstractmethod
-    def search(
-        self, 
-        initial_state: State, 
-        callbacks: Optional[SearchCallbacks] = None
-    ) -> SearchResult:
+    def search(self, initial_state: State) -> SearchResult:
         """Executa a busca a partir de um estado inicial."""
         pass

@@ -1,27 +1,18 @@
 import time
-from typing import Optional
 
 from search_lib.core import (
     SearchNode, 
     SearchStrategy, 
     State, 
     SearchMetrics, 
-    SearchResult,
-    SearchCallbacks
+    SearchResult
 )
 
 
 class DFS(SearchStrategy):
     """Busca em Profundidade em Árvore (Tree-DFS)."""
 
-    def search(
-        self, 
-        initial_state: State, 
-        callbacks: Optional[SearchCallbacks] = None
-    ) -> SearchResult:
-        if callbacks and callbacks.on_start:
-            callbacks.on_start()
-
+    def search(self, initial_state: State) -> SearchResult:
         start_time = time.perf_counter()
         metrics = SearchMetrics()
 
@@ -31,27 +22,16 @@ class DFS(SearchStrategy):
         frontier = [root]
         metrics.max_frontier_size = max(metrics.max_frontier_size, len(frontier))
 
-        if callbacks and callbacks.on_node_generated:
-            callbacks.on_node_generated(root, frontier)
-
         while frontier:
             node = frontier.pop()
             metrics.nodes_expanded += 1
 
-            if callbacks and callbacks.on_node_expanded:
-                callbacks.on_node_expanded(node, frontier)
-
             if self.problem.is_goal(node.state):
                 metrics.execution_time = time.perf_counter() - start_time
-                res = SearchResult(solution_node=node, metrics=metrics)
-                if callbacks and callbacks.on_finish:
-                    callbacks.on_finish(res)
-                return res
+                return SearchResult(solution_node=node, metrics=metrics)
 
             for action in self.problem.actions(node.state):
                 res_action = action.apply(node.state)
-                if callbacks and callbacks.on_action_applied:
-                    callbacks.on_action_applied(node, action, res_action)
 
                 if res_action is not None:
                     next_state, action_cost = res_action
@@ -65,11 +45,5 @@ class DFS(SearchStrategy):
                     frontier.append(child)
                     metrics.max_frontier_size = max(metrics.max_frontier_size, len(frontier))
 
-                    if callbacks and callbacks.on_node_generated:
-                        callbacks.on_node_generated(child, frontier)
-
         metrics.execution_time = time.perf_counter() - start_time
-        res = SearchResult(solution_node=None, metrics=metrics)
-        if callbacks and callbacks.on_finish:
-            callbacks.on_finish(res)
-        return res
+        return SearchResult(solution_node=None, metrics=metrics)
