@@ -96,19 +96,11 @@ Podem ser implementadas estratégias como:
 * A*;
 * IDA*;
 * RBFS;
-* Busca Bidirecional.
+* Busca Bidirecional;
+* Graph Search.
 
 A estratégia de busca é responsável pelo controle da fronteira, dos estados explorados e das características específicas do algoritmo.
 
-## Tree Search e Graph Search
-
-A distinção entre Tree Search e Graph Search deve ser tratada pela estratégia de busca.
-
-**Tree Search** permite que um mesmo estado apareça mais de uma vez durante a exploração.
-
-**Graph Search** mantém controle dos estados já explorados para evitar expansões desnecessárias e ciclos.
-
-O controle de estados explorados deve permanecer na estratégia de busca, e não na classe `Problem`.
 
 ## Métricas
 
@@ -145,25 +137,3 @@ O novo problema deve ser compatível com as abstrações existentes, sem exigir 
 * `actions(state)` deve ser determinístico para um mesmo estado, quando a natureza do problema permitir.
 * A lógica do problema, o algoritmo de busca, as métricas e a visualização devem permanecer separados.
 * Novas implementações devem utilizar as abstrações existentes em vez de duplicar funcionalidades do núcleo.
-
-## Extensibilidade
-
-A arquitetura da `search_lib` permite combinar diferentes problemas com diferentes estratégias de busca:
-
-```text
-             search_lib
-                  │
-        ┌─────────┴─────────┐
-        │                   │
-     Problem          SearchStrategy
-        │                   │
-   ┌────┴────┐        ┌─────┴─────┐
-   │         │        │           │
- State     Action     BFS         A*
-                      │           │
-                      └─────┬─────┘
-                            │
-                        SearchNode
-```
-
-O objetivo é manter o núcleo da biblioteca independente das implementações específicas, facilitando a criação de novos problemas, algoritmos e experimentos.

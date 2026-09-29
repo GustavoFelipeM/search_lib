@@ -1,7 +1,7 @@
 import os
 import sys
 
-# Garante que o Python encontra a pasta raiz do projeto e o ficheiro problem.py
+# Garante que o Python encontra a pasta raiz do projeto e o arquivo problem.py
 DIR_ATUAL = os.path.dirname(os.path.abspath(__file__))
 RAIZ_PROJETO = os.path.abspath(os.path.join(DIR_ATUAL, "../.."))
 
@@ -15,11 +15,11 @@ from problem import GridPathfinding
 
 
 def main():
-    # Caminho do ficheiro de mapa
+    # Caminho do arquivo de mapa
     current_dir = os.path.dirname(os.path.abspath(__file__))
     map_path = os.path.join(current_dir, "map.txt")
 
-    # Carrega o problema da grelha via ficheiro
+    # Carrega o problema da malha via arquivo
     problema = GridPathfinding(file=map_path)
 
     print("=== BUSCA EM LARGURA (BFS) ===")
@@ -48,7 +48,7 @@ def main():
 
     # === BUSCA EM PROFUNDIDADE (DFS) ===
     # NOTA: O DFS em versão árvore (sem controlo de estados visitados/fechados)
-    # pode entrar em ciclo infinito na grelha devido a movimentos reversíveis (ex: CIMA -> BAIXO).
+    # pode entrar em ciclo infinito na malha devido a movimentos reversíveis (ex: CIMA -> BAIXO).
     # Para testar o DFS com segurança, descomente o bloco abaixo consciente desta limitação:
     
     """

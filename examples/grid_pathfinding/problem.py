@@ -49,8 +49,8 @@ def manhattan_distance(state: State, goal: State) -> float:
 
 class GridPathfinding(Problem):
     """
-    Problema de busca de caminhos em grelha 2D.
-    Pode ser inicializado via parâmetros directos ou carregado a partir de ficheiro de texto.
+    Problema de busca de caminhos em malha 2D.
+    Pode ser inicializado via parâmetros directos ou carregado a partir de um arquivo de texto.
     """
     def __init__(
         self, 
@@ -72,7 +72,7 @@ class GridPathfinding(Problem):
             self._load_from_file(file)
 
     def _load_from_file(self, filepath: str) -> None:
-        """Carrega o mapa a partir de um ficheiro de texto."""
+        """Carrega o mapa a partir de um arquivo de texto."""
         with open(filepath, 'r') as f:
             lines = [line.strip() for line in f.readlines() if line.strip()]
         

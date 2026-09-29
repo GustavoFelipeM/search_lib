@@ -13,5 +13,4 @@ env/
 .vscode/
 
 # Resultado de teste
-*.csv
-*.svg
+*.png
